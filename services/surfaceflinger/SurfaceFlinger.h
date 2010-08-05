@@ -216,6 +216,9 @@ public:
             overlay_control_device_t* getOverlayEngine() const;
 
             inline int                  getRenderEffect() const { return mRenderEffect; }
+	    inline int			getRenderColorR() const { return mRenderColorR; }
+	    inline int			getRenderColorG() const { return mRenderColorG; }
+	    inline int			getRenderColorB() const { return mRenderColorB; }
 
             
     status_t removeLayer(const sp<LayerBase>& layer);
@@ -417,6 +420,9 @@ private:
                 int                         mDebugRegion;
                 int                         mDebugBackground;
                 int                         mRenderEffect;
+		int			    mRenderColorR;
+		int			    mRenderColorG;
+		int			    mRenderColorB;
                 volatile nsecs_t            mDebugInSwapBuffers;
                 nsecs_t                     mLastSwapBufferTime;
                 volatile nsecs_t            mDebugInTransaction;
