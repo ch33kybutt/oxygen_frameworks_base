@@ -568,14 +568,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     /**
      * When a volumeup-key longpress expires, skip songs based on key press
+     * If there is no media playing, start it
      */
     Runnable mVolumeUpLongPress = new Runnable() {
         public void run() {
             // set the long press flag to true
             mIsLongPress = true;
-
-            // Shamelessly copied from Kmobs LockScreen controls, works for Pandora, etc...
-            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_NEXT);
+            if (isMusicActive()) {
+                // FIXME: Doesn't work correctly when Xiialive is installed
+                sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_NEXT);
+                } else {
+                sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+                };
         };
     };
 
@@ -586,9 +590,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         public void run() {
             // set the long press flag to true
             mIsLongPress = true;
-
-            // Shamelessly copied from Kmobs LockScreen controls, works for Pandora, etc...
-            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+            // If media is playing, skip to previous track. Otherwise do nothing.
+            if (isMusicActive()) {
+                // FIXME: Doesn't work correctly when Xiialive is installed
+                sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+            };
         };
     };
 
@@ -1949,7 +1955,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         }
                     }
 
-                    if (isMusicActive() && (result & ACTION_PASS_TO_USER) == 0) {
+                    if ((result & ACTION_PASS_TO_USER) == 0) {
                         // initialize long press flag to false for volume events
                         mIsLongPress = false;
                         // if the button is held long enough, the following
