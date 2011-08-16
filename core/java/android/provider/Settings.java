@@ -1833,6 +1833,12 @@ public final class Settings {
          */
         public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
 
+     	/**
+         * Specifies whether to show status clock. The value is boolean (1 or 0).
+         * @hide
+         */
+    	public static final String HIDE_CLOCK = "hide_clock";
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
