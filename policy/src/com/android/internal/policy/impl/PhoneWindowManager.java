@@ -1917,7 +1917,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 {
                     handleVolumeLongPressAbort();
 
-                    if (!mIsLongPress && (result & ACTION_PASS_TO_USER) == 0)
+                    // delay handling volume events if mVolBtnMusicControls is desired
+                    if (isMusicActive() && !mIsLongPress && (result & ACTION_PASS_TO_USER) == 0)
                         handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
                 }
                 if (down) {
