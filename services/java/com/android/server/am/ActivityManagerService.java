@@ -4387,12 +4387,15 @@ public final class ActivityManagerService extends ActivityManagerNative
         perm.modeFlags |= modeFlags;
         if (owner == null) {
             perm.globalModeFlags |= modeFlags;
-        } else if ((modeFlags&Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-            perm.readOwners.add(owner);
-            owner.addReadPermission(perm);
-        } else if ((modeFlags&Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
-            perm.writeOwners.add(owner);
-            owner.addWritePermission(perm);
+        } else {
+            if ((modeFlags&Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                 perm.readOwners.add(owner);
+                 owner.addReadPermission(perm);
+            }
+            if ((modeFlags&Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
+                 perm.writeOwners.add(owner);
+                 owner.addWritePermission(perm);
+            }
         }
     }
 
@@ -4698,7 +4701,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (localLOGV) Slog.v(
                 TAG, "getTasks: max=" + maxNum + ", flags=" + flags
                 + ", receiver=" + receiver);
-
             if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (receiver != null) {
