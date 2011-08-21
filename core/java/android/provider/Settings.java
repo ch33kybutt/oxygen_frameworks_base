@@ -1578,6 +1578,14 @@ public final class Settings {
         public static final String ACCELEROMETER_ROTATION = "accelerometer_rotation";
 
         /**
+         * Control whether 180 degree rotation should be included if
+         * ACCELEROMETER_ROTATION is enabled. If 0 no 180 degree rotation will be
+         * executed, if 1 the 180 degree rotation is executed when ACCELEROMETER_ROTATION is true.
+         * @hide
+         */
+        public static final String ACCELEROMETER_ROTATE_180 = "accelerometer_rotate_180";
+
+        /**
          * Whether the audible DTMF tones are played by the dialer when dialing. The value is
          * boolean (1 or 0).
          */
@@ -1956,6 +1964,7 @@ public final class Settings {
             TIME_12_24,
             DATE_FORMAT,
             ACCELEROMETER_ROTATION,
+            ACCELEROMETER_ROTATE_180,
             DTMF_TONE_WHEN_DIALING,
             DTMF_TONE_TYPE_WHEN_DIALING,
             EMERGENCY_TONE,

@@ -21,6 +21,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.provider.Settings;
 import android.util.Config;
 import android.util.Log;
 
@@ -39,6 +40,7 @@ public abstract class WindowOrientationListener {
     private static final String TAG = "WindowOrientationListener";
     private static final boolean DEBUG = false;
     private static final boolean localLOGV = DEBUG || Config.DEBUG;
+    private static Context mContext;
     private SensorManager mSensorManager;
     private boolean mEnabled = false;
     private int mRate;
@@ -69,6 +71,7 @@ public abstract class WindowOrientationListener {
      */
     private WindowOrientationListener(Context context, int rate) {
         mSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+        mContext = context;
         mRate = rate;
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (mSensor != null) {
@@ -267,7 +270,7 @@ public abstract class WindowOrientationListener {
         private static final float ACCELERATING_LOWPASS_ALPHA =
             computeLowpassAlpha(ACCELERATING_TIME_CONSTANT_MS);
 
-        private boolean mAllow180Rotation = false;
+        // private boolean mAllow180Rotation = false;
 
         private WindowOrientationListener mOrientationListener;
         private int mRotation = ROTATION_0; // Current orientation state
@@ -291,7 +294,7 @@ public abstract class WindowOrientationListener {
         }
 
         void setAllow180Rotation(boolean allowed) {
-            mAllow180Rotation = allowed;
+            //mAllow180Rotation = allowed;
         }
 
         int getCurrentRotation(int lastRotation) {
@@ -304,7 +307,9 @@ public abstract class WindowOrientationListener {
 
         private void calculateNewRotation(float orientation, float tiltAngle) {
             if (localLOGV) Log.i(TAG, orientation + ", " + tiltAngle + ", " + mRotation);
-            final boolean allow180Rotation = mAllow180Rotation;
+            // final boolean allow180Rotation = mAllow180Rotation;
+            boolean allow180Rotation = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.ACCELEROMETER_ROTATE_180, 0) != 0);
             int thresholdRanges[][] = allow180Rotation
                     ? THRESHOLDS_WITH_180[mRotation] : THRESHOLDS[mRotation];
             int row = -1;
