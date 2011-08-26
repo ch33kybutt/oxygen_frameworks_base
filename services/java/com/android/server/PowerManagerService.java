@@ -104,7 +104,7 @@ class PowerManagerService extends IPowerManager.Stub
 
     // How long to wait to debounce light sensor changes.
     // We increase quickly, but decrease slowly to avoid annoying rapid changes.
-    private static final int LIGHT_SENSOR_INCREASE_DELAY = 500;
+    private static final int LIGHT_SENSOR_INCREASE_DELAY = 2000;
     private static final int LIGHT_SENSOR_DECREASE_DELAY = 7500;
 
     // For debouncing the proximity sensor.
