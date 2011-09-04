@@ -176,6 +176,18 @@ public class NotificationManagerService extends INotificationManager.Stub
     private boolean mBatteryFull;
     private NotificationRecord mLedNotification;
 
+    private boolean mQuietHoursEnabled = false;
+    // Minutes from midnight when quiet hours begin.
+    private int mQuietHoursStart = 0;
+    // Minutes from midnight when quiet hours end.
+    private int mQuietHoursEnd = 0;
+    // Don't play sounds.
+    private boolean mQuietHoursMute = true;
+    // Don't vibrate.
+    private boolean mQuietHoursStill = true;
+    // Dim LED if hardware supports it.
+    private boolean mQuietHoursDim = true;
+
     private static final int BATTERY_LOW_ARGB = 0xFFFF0000; // Charging Low - red solid on
     private static final int BATTERY_MEDIUM_ARGB = 0xFFFFFF00;    // Charging - orange solid on
     private static final int BATTERY_FULL_ARGB = 0xFF00FF00; // Charging Full - green solid on
@@ -499,6 +511,18 @@ public class NotificationManagerService extends INotificationManager.Stub
                     Settings.System.NOTIFICATION_LIGHT_ALWAYS_ON), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NOTIFICATION_LIGHT_CHARGING), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_ENABLED), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_START), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_END), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_MUTE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_STILL), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QUIET_HOURS_DIM), false, this);
             update();
         }
 
@@ -532,6 +556,19 @@ public class NotificationManagerService extends INotificationManager.Stub
                 mNotificationChargingEnabled = chargingEnabled;
                 updateAmberLight();
             }
+
+            mQuietHoursEnabled = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_ENABLED, 0) != 0;
+            mQuietHoursStart = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_START, 0);
+            mQuietHoursEnd = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_END, 0);
+            mQuietHoursMute = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_MUTE, 0) != 0;
+            mQuietHoursStill = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_STILL, 0) != 0;
+            mQuietHoursDim = Settings.System.getInt(resolver,
+                    Settings.System.QUIET_HOURS_DIM, 0) != 0;
         }
     }
 
@@ -963,6 +1000,8 @@ public class NotificationManagerService extends INotificationManager.Stub
         }
 
         synchronized (mNotificationList) {
+            final boolean inQuietHours = inQuietHours();
+
             NotificationRecord r = new NotificationRecord(pkg, tag, id,
                     callingUid, callingPid, notification);
             NotificationRecord old = null;
@@ -1033,7 +1072,8 @@ public class NotificationManagerService extends INotificationManager.Stub
                 // sound
                 final boolean useDefaultSound =
                     (notification.defaults & Notification.DEFAULT_SOUND) != 0;
-                if (useDefaultSound || notification.sound != null) {
+                if (!(inQuietHours && mQuietHoursMute)
+                        && (useDefaultSound || notification.sound != null)) {
                     Uri uri;
                     if (useDefaultSound) {
                         uri = Settings.System.DEFAULT_NOTIFICATION_URI;
@@ -1064,7 +1104,8 @@ public class NotificationManagerService extends INotificationManager.Stub
                 // vibrate
                 final boolean useDefaultVibrate =
                     (notification.defaults & Notification.DEFAULT_VIBRATE) != 0;
-                if ((useDefaultVibrate || notification.vibrate != null)
+                if (!(inQuietHours && mQuietHoursStill)
+                        && (useDefaultVibrate || notification.vibrate != null)
                         && audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)) {
                     mVibrateNotification = r;
 
@@ -1096,6 +1137,35 @@ public class NotificationManagerService extends INotificationManager.Stub
         }
 
         idOut[0] = id;
+    }
+
+    private int adjustForQuietHours(int color) {
+        if (inQuietHours() && mQuietHoursDim) {
+            // Cut all of the channels by a factor of 16 to dim on capable hardware.
+            // Note that this should fail gracefully on other hardware.
+            int red = (((color & 0xFF0000) >>> 16) >>> 4);
+            int green = (((color & 0xFF00) >>> 8 ) >>> 4);
+            int blue = ((color & 0xFF) >>> 4);
+
+            color = (0xFF000000 | (red << 16) | (green << 8) | blue);
+        }
+
+        return color;
+    }
+
+    private boolean inQuietHours() {
+        if (mQuietHoursEnabled && (mQuietHoursStart != mQuietHoursEnd)) {
+            // Get the date in "quiet hours" format.
+            Calendar calendar = Calendar.getInstance();
+            int minutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
+            if (mQuietHoursEnd < mQuietHoursStart) {
+                // Starts at night, ends in the morning.
+                return (minutes > mQuietHoursStart) || (minutes < mQuietHoursEnd);
+            } else {
+                return (minutes > mQuietHoursStart) && (minutes < mQuietHoursEnd);
+            }
+        }
+        return false;
     }
 
     private boolean checkLight(Notification notification, String pkgName) {
@@ -1391,22 +1461,7 @@ public class NotificationManagerService extends INotificationManager.Stub
             }
         }
 
-        /*
-        // Adjust the LED for quiet hours
-        if (inQuietHours() && mQuietHoursDim) {
-            // Cut all of the channels by a factor of 16 to dim on capable
-            // hardware.
-            // Note that this should fail gracefully on other hardware.
-            int argb = rledARGB;
-            int red = (((argb & 0xFF0000) >>> 16) >>> 4);
-            int green = (((argb & 0xFF00) >>> 8) >>> 4);
-            int blue = ((argb & 0xFF) >>> 4);
-
-            rledARGB = (0xFF000000 | (red << 16) | (green << 8) | blue);
-        }
-        */
-        
-        return rledARGB;
+        return adjustForQuietHours(rledARGB);
     } 
 
     // lock on mNotificationList
@@ -1424,19 +1479,17 @@ public class NotificationManagerService extends INotificationManager.Stub
 
         // Battery low always shows, other states only show if charging.
         if (mBatteryLow) {
+	    int color = adjustForQuietHours(BATTERY_LOW_ARGB);
             if (mBatteryCharging) {
-                mBatteryLight.setColor(BATTERY_LOW_ARGB);
+                mBatteryLight.setColor(color);
             } else {
                 // Flash when battery is low and not charging
                 mBatteryLight.setFlashing(BATTERY_LOW_ARGB, LightsService.LIGHT_FLASH_TIMED,
                         BATTERY_BLINK_ON, BATTERY_BLINK_OFF);
             }
         } else if (mBatteryCharging) {
-            if (mBatteryFull) {
-                mBatteryLight.setColor(BATTERY_FULL_ARGB);
-            } else {
-                mBatteryLight.setColor(BATTERY_MEDIUM_ARGB);
-            }
+            int color = mBatteryFull ? BATTERY_FULL_ARGB : BATTERY_MEDIUM_ARGB;
+            mBatteryLight.setColor(adjustForQuietHours(color));
         } else {
             mBatteryLight.turnOff();
         }
@@ -1524,10 +1577,10 @@ public class NotificationManagerService extends INotificationManager.Stub
         }
 
         boolean greenOn = mGreenLightOn;
-        //final boolean inQuietHours = inQuietHours();
+        final boolean inQuietHours = inQuietHours();
 
         // disable light if screen is on and "always show" is off
-        if (mLedNotification == null || mInCall 
+        if (mLedNotification == null || mInCall || inQuietHours
                 || (mScreenOn && !mNotificationAlwaysOnEnabled)) {
             mNotificationLight.turnOff();
             mGreenLightOn = false;
@@ -1550,13 +1603,13 @@ public class NotificationManagerService extends INotificationManager.Stub
     private void updateAmberLight() {
         // disable LED if green LED is already on
         if (!mGreenLightOn && !mInCall) {
-            //final boolean inQuietHours = inQuietHours();
+            final boolean inQuietHours = inQuietHours();
 
             // enable amber only if low battery and not charging or charging
             // and notification enabled
             //if (!inQuietHours && ((mBatteryLow && !mBatteryCharging) ||
-            if ((mBatteryLow && !mBatteryCharging) ||
-                    (mBatteryCharging && mNotificationChargingEnabled && !mBatteryFull)) {
+            if (!inQuietHours && ((mBatteryLow && !mBatteryCharging) ||
+                    (mBatteryCharging && mNotificationChargingEnabled && !mBatteryFull))) {
                 mBatteryLight.setColor(0xFFFFFF00);
                 return;
             }
