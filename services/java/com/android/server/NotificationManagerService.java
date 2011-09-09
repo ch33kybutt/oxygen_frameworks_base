@@ -1141,11 +1141,11 @@ public class NotificationManagerService extends INotificationManager.Stub
 
     private int adjustForQuietHours(int color) {
         if (inQuietHours() && mQuietHoursDim) {
-            // Cut all of the channels by a factor of 16 to dim on capable hardware.
+            // Cut all of the channels by a factor of 100 to dim on capable hardware.
             // Note that this should fail gracefully on other hardware.
-            int red = (((color & 0xFF0000) >>> 16) >>> 4);
-            int green = (((color & 0xFF00) >>> 8 ) >>> 4);
-            int blue = ((color & 0xFF) >>> 4);
+            int red = (((color & 0xFF0000) >>> 16) >>> 10);
+            int green = (((color & 0xFF00) >>> 8 ) >>> 10);
+            int blue = ((color & 0xFF) >>> 10);
 
             color = (0xFF000000 | (red << 16) | (green << 8) | blue);
         }
