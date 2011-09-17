@@ -22,6 +22,12 @@
         <item name="android:textColor">@drawable/notification_header_text_color</item>
     </style>
 
+    <style name="StatusBar.BatteryBar" parent="@android:style/Widget.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/battery_bar</item>
+        <item name="android:minHeight">1dip</item>
+        <item name="android:maxHeight">1dip</item>
+    </style>
+
     <style name="StatusBar.ClearButton" parent="@android:style/Widget.Button">
         <item name="android:textColor">@color/clear_button_text_color</item>
         <item name="android:textSize">14sp</item>
