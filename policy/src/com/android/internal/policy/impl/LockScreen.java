@@ -83,6 +83,9 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     // last known battery level
     private int mBatteryLevel = 100;
 
+    private boolean mLockAlwaysBattery = (Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.LOCKSCREEN_ALWAYS_BATTERY, 0) == 1);
+
     private String mNextAlarm = null;
     private Drawable mAlarmIcon = null;
     private String mCharging = null;
@@ -410,14 +413,17 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     }
 
     private void refreshBatteryStringAndIcon() {
-        if (!mShowingBatteryInfo) {
+        if (!mShowingBatteryInfo && !mLockAlwaysBattery) {
             mCharging = null;
             return;
         }
 
-        if (mChargingIcon == null) {
+        if (mPluggedIn) {
             mChargingIcon =
-                    getContext().getResources().getDrawable(R.drawable.ic_lock_idle_charging);
+                getContext().getResources().getDrawable(R.drawable.ic_lock_idle_charging);
+        } else {
+            mChargingIcon =
+                getContext().getResources().getDrawable(R.drawable.ic_lock_idle_discharging);
         }
 
         if (mPluggedIn) {
@@ -427,7 +433,11 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
                 mCharging = getContext().getString(R.string.lockscreen_plugged_in, mBatteryLevel);
             }
         } else {
-            mCharging = getContext().getString(R.string.lockscreen_low_battery);
+            if (mBatteryLevel <= 20) {
+                mCharging = getContext().getString(R.string.lockscreen_low_battery, mBatteryLevel);
+            } else {
+                mCharging = getContext().getString(R.string.lockscreen_discharging, mBatteryLevel);
+            }
         }
     }
 
