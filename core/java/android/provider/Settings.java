@@ -1854,7 +1854,7 @@ public final class Settings {
          * Battery percentage toggle for Oxygen.
          * @hide
          */
-        public static final String BATTERY_PERCENTAGE = "battery_percentage";
+        public static final String BATTERY_STYLE = "battery_style";
 
         /**
          * Whether to wake the screen with the trackball. The value is boolean (1 or 0).

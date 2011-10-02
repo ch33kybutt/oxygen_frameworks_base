@@ -44,7 +44,7 @@ public class CmBatteryBar extends ProgressBar {
         void observer() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.BATTERY_PERCENTAGE), false, this);
+                    Settings.System.getUriFor(Settings.System.BATTERY_STYLE), false, this);
         }
 
         @Override
@@ -160,7 +160,7 @@ public class CmBatteryBar extends ProgressBar {
     private void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
         mShowCmBatteryBar = (Settings.System.getInt(resolver,
-                Settings.System.BATTERY_PERCENTAGE, 0) == 2);
+                Settings.System.BATTERY_STYLE, 0) == 2);
         if (mShowCmBatteryBar) {
             setVisibility(VISIBLE);
         } else {

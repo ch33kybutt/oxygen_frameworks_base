@@ -91,7 +91,7 @@ public class CmBatteryMiniIcon extends ImageView {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.BATTERY_PERCENTAGE), false, this);
+                    Settings.System.getUriFor(Settings.System.BATTERY_STYLE), false, this);
         }
 
         @Override
@@ -270,7 +270,7 @@ public class CmBatteryMiniIcon extends ImageView {
         ContentResolver resolver = mContext.getContentResolver();
 
         mShowCmBattery = (Settings.System
-                .getInt(resolver, Settings.System.BATTERY_PERCENTAGE, 0) == 1);
+                .getInt(resolver, Settings.System.BATTERY_STYLE, 0) == 1);
 
         if (mShowCmBattery)
             setVisibility(View.VISIBLE);

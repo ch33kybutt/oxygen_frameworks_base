@@ -601,7 +601,7 @@ public class StatusBarPolicy {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.BATTERY_PERCENTAGE), false, this);
+                    Settings.System.BATTERY_STYLE), false, this);
         }
 
         @Override public void onChange(boolean selfChange) {
@@ -1526,7 +1526,7 @@ public class StatusBarPolicy {
         ContentResolver resolver = mContext.getContentResolver();
 
         mShowCmBattery = (Settings.System.getInt(resolver,
-                Settings.System.BATTERY_PERCENTAGE, 0) > 0);
+                Settings.System.BATTERY_STYLE, 0) > 0);
         mCmBatteryStatus = !mShowCmBattery;
         mService.setIconVisibility("battery", !mShowCmBattery);
     }
