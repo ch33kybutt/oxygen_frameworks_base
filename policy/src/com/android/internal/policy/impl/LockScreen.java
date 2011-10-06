@@ -84,7 +84,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     private int mBatteryLevel = 100;
 
     private boolean mLockAlwaysBattery = (Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_ALWAYS_BATTERY, 0) == 1);
+            Settings.System.LOCKSCREEN_ALWAYS_BATTERY, 1) == 1);
 
     private String mNextAlarm = null;
     private Drawable mAlarmIcon = null;
