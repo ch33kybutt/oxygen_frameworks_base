@@ -17,8 +17,6 @@
 package android.webkit;
 
 import android.content.Context;
-import android.net.WebAddress;
-import android.net.ParseException;
 import android.net.http.*;
 import android.os.*;
 import android.util.Log;
@@ -144,25 +142,6 @@ class Network {
         mRequestQueue = new RequestQueue(context);
     }
 
-    public boolean setPriority(String url, int priority) {
-        WebAddress uri = null;
-        if (URLUtil.isNetworkUrl(url)) {
-            String nurl = URLUtil.stripAnchor(url);
-            try {
-                uri = new WebAddress(nurl);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        if (uri != null)
-            return mRequestQueue.setRequestPriority(uri, priority);
-        return false;
-    }
-
-    public void commitPriorities() {
-        mRequestQueue.commitRequestPriorities();
-    }
-
     /**
      * Request a url from either the network or the file system.
      * @param url The url to load.
@@ -210,8 +189,7 @@ class Network {
             loader.loadSynchronousMessages();
         } else {
             handle = q.queueRequest(url, loader.getWebAddress(), method,
-                    headers, loader, bodyProvider, bodyLength,
-                    loader.priority(), loader.shouldCommit());
+                    headers, loader, bodyProvider, bodyLength);
             // FIXME: Although this is probably a rare condition, normal network
             // requests are processed in a separate thread. This means that it
             // is possible to process part of the request before setting the

@@ -456,6 +456,6 @@ public class RequestHandle {
         mRequest = mRequestQueue.queueRequest(
                 mUrl, mUri, mMethod, mHeaders, mRequest.mEventHandler,
                 mBodyProvider,
-                mBodyLength, -1, false).mRequest;
+                mBodyLength).mRequest;
     }
 }
