@@ -1963,7 +1963,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         }
                     }
 
-                    if (result & ACTION_PASS_TO_USER) == 0) {
+                    if ((result & ACTION_PASS_TO_USER) == 0) {
                         // Care for long-press actions to skip tracks
                         if(mVolBtnMusicControls) {
                             // initialize long press flag to false for volume events
